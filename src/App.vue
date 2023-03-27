@@ -1,30 +1,46 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+<script lang="ts">
+import { reactive } from 'vue';
+
+export default ({
+  // onMounted() {
+  //   let currentTab = reactive({});
+  //   chrome.runtime.sendMessage({type: "POPUP_INIT"}, (tab) => {currentTab = tab} )
+  // },
+  methods: {
+    async getAllGoogleMapUrls() {
+      const googleMapsUrlRegex = /^https?\:\/\/(www\.)?google\.[a-z]+\/maps\b/;
+      let tabUrls: String[] = [];
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+
+      tabs.forEach(tab => {
+        if (tab.url && googleMapsUrlRegex.test(tab.url.valueOf())) {
+          tabUrls.push(tab.url);
+        }
+      });
+
+      let result = "";
+      tabUrls.forEach((url, index) => {
+        if (index === 0) {
+          result = `${url.split('@')[0]}`
+        }
+        else {
+          const currentPart = url.split("/dir/")[1].split("@")[0];
+          result = `${result}${currentPart}`;
+        }
+      });
+      if(result && result.length)
+      {
+        chrome.tabs.create({ "url": result });
+      }
+    }
+  }
+})
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div style="{width: 500px;}">
+    <button @click="getAllGoogleMapUrls">
+      Merge google maps tabs!
+    </button>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
-
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
