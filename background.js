@@ -5,7 +5,6 @@ async function updateBadge(tabId, url) {
   const isMaps = mapsRegex.test(url);
 
   try {
-    console.log('[merge-stops] updateBadge', { tabId, url, isMaps });
     if (isMaps) {
       await chrome.action.setBadgeText({ tabId, text: 'GO!' });
       await chrome.action.setBadgeBackgroundColor({ tabId, color: '#ec4899' });
@@ -21,17 +20,6 @@ async function updateBadge(tabId, url) {
     console.error('[merge-stops] badge update failed', err);
   }
 }
-
-console.log('[merge-stops] background worker starting');
-
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('[merge-stops] onInstalled');
-  chrome.action.setBadgeText({ text: '' }).catch(() => {});
-});
-
-chrome.runtime.onStartup.addListener(() => {
-  console.log('[merge-stops] onStartup');
-});
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' || changeInfo.url) {
