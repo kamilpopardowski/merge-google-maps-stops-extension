@@ -1,18 +1,36 @@
-# Vue 3 + TypeScript + Vite
+# Merge Google Maps Stops (Chrome extension)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Lightweight Chrome extension that merges multiple Google Maps directions tabs into a single route so you can plan trips with more than 10 stops.
 
-## Recommended IDE Setup
+## How it works
+- Open multiple Google Maps directions tabs (each must be a `/maps/dir/...` URL).
+- Click the extension icon and press **Merge google maps tabs!** in the popup.
+- The extension grabs all Google Maps tabs in the current window, preserves their order, stitches the `/dir/` segments together, and opens one combined tab with every stop.
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Development
+Prereqs: Node 18+, Yarn.
 
-## Type Support For `.vue` Imports in TS
+### Install
+```bash
+yarn install
+```
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+### Run in dev (Vite)
+```bash
+yarn dev --host
+```
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+### Build
+```bash
+yarn build
+```
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+## Load the extension in Chrome
+1) Run `yarn build` to generate `dist/`.
+2) Go to `chrome://extensions`, enable Developer mode, and choose **Load unpacked**.
+3) Select the project root (it contains `manifest.json` and the `dist/` folder). The action popup is served from `dist/index.html`.
+
+## Notes / limitations
+- Only tabs whose URLs match `https://*.google.{tld}/maps/dir/...` are merged.
+- Stops are merged in the order of your open tabs; duplicate stops are not deduped.
+- Manifest v3; permissions limited to `tabs` for reading open Google Maps URLs.
