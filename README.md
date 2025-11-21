@@ -26,11 +26,12 @@ yarn build
 ```
 
 ## Load the extension in Chrome
-1) Run `yarn build` to generate `dist/`.
+1) Run `yarn build` to generate `dist/` (it copies the popup bundle and `background.js`, and writes `dist/manifest.json`).
 2) Go to `chrome://extensions`, enable Developer mode, and choose **Load unpacked**.
-3) Select the project root (it contains `manifest.json` and the `dist/` folder). The action popup is served from `dist/index.html`.
+3) Select the `dist/` folder. The popup is `index.html`; the background worker runs from `background.js`.
 
 ## Notes / limitations
 - Only tabs whose URLs match `https://*.google.{tld}/maps/dir/...` are merged.
 - Stops are merged in the order of your open tabs; duplicate stops are not deduped.
 - Manifest v3; permissions limited to `tabs` for reading open Google Maps URLs.
+- When a Google Maps tab is active, the extension icon shows a hot-pink badge `GO!` to prompt merging. Pin the icon in Chrome’s toolbar to see the badge.
