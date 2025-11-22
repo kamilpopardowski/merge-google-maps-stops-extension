@@ -4,7 +4,20 @@
     "description": "Merging google maps stops from given urls that way you can add many more stops then 10",
     "version": "1.0.0",
     "permissions": [
-        "tabs"
+        "tabs",
+        "storage"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.google.com/maps/*",
+                "https://maps.google.com/*"
+            ],
+            "js": [
+                "mapsHintContent.js"
+            ],
+            "run_at": "document_idle"
+        }
     ],
     "background": {
         "service_worker": "dist/background.js"

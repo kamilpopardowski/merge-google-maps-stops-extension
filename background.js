@@ -46,3 +46,13 @@ chrome.tabs.query({}).then((tabs) => {
     }
   });
 });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || typeof message !== 'object') return;
+  if (message.type === 'openExtensionPopupHint') {
+    if (chrome.action?.openPopup) {
+      chrome.action.openPopup().catch(() => {});
+    }
+    sendResponse?.({ ok: true });
+  }
+});
