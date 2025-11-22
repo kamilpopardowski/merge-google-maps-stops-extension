@@ -20,20 +20,25 @@
       const selectors = [
         '[aria-label*="Route options"]',
         '[data-tooltip*="Route options"]',
+        '[aria-label*="Route overview"]',
         '.section-directions-trip',
         '.section-directions-trip-description',
         '.section-directions-trip-details',
-        '[aria-label*="Route overview"]',
         '[role="article"] .section-directions-trip-title',
         '[role="article"] .section-directions-trip-details',
         '[data-tooltip*="Steps"]',
         '[aria-label*="Route summary"]',
+        '[aria-label*="Directions"]',
+        '.section-directions-panel',
       ];
       for (const sel of selectors) {
         if (document.querySelector(sel)) return true;
       }
+      const steps = document.querySelectorAll('.section-directions-trip, [aria-label*="directions"] [role="listitem"]');
+      if (steps.length > 0) return true;
       const text = document.body?.innerText || '';
       if (/\bRoute options\b/i.test(text)) return true;
+      if (/\bDirections\b/i.test(text) && steps.length > 0) return true;
       return false;
     } catch (err) {
       return false;
