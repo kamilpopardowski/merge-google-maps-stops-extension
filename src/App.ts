@@ -143,13 +143,14 @@ export default defineComponent({
         const stability = await testRouteStability(mergedUrl);
 
         if (stability === 'ok') {
-          await chrome.tabs.create({ url: mergedUrl });
           status.value = 'Merged route opened in a new tab.';
           statusTone.value = 'info';
         } else {
-          status.value = 'Route looks unstable. Try fewer stops or retry.';
+          status.value = 'Route test reported an issue; opening anyway. Some routes may still fail to load.';
           statusTone.value = 'warn';
         }
+
+        await chrome.tabs.create({ url: mergedUrl });
       } catch (error) {
         console.error('Failed to merge tabs', error);
         status.value = 'Could not merge tabs. Please try again.';
