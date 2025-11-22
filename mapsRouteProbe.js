@@ -80,7 +80,7 @@
       clearInterval(interval);
       console.warn('[merge-stops][probe] timeout');
       sendStatus('timeout');
-    }, 20000);
+    }, 30000);
   };
 
   try {

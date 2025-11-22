@@ -105,7 +105,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         console.warn('[merge-stops] testMergedRoute timeout');
         cleanup('timeout');
         setErrorBadge();
-      }, 20000);
+      }, 30000);
     } catch (err) {
       console.error('[merge-stops] testMergedRoute failed to open tab', err);
       if (!responded) {
