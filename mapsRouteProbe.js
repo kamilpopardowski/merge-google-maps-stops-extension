@@ -23,6 +23,8 @@
         '[data-tooltip*="Directions"]',
         '[role="article"]',
         '.section-directions-trip',
+        'canvas', // route rendering layer often uses canvas
+        'path' // svg path for routes
       ];
       for (const sel of selectors) {
         if (document.querySelector(sel)) return true;
@@ -71,14 +73,14 @@
         return;
       }
       console.log('[merge-stops][probe] polling...');
-    }, INTERVAL_MS);
+    }, 1000);
 
     setTimeout(() => {
       if (done) return;
       clearInterval(interval);
       console.warn('[merge-stops][probe] timeout');
       sendStatus('timeout');
-    }, MAX_MS);
+    }, 20000);
   };
 
   try {

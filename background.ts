@@ -49,6 +49,16 @@ chrome.tabs.query({}).then((tabs) => {
   });
 });
 
+const setErrorBadge = async () => {
+  try {
+    await chrome.action.setBadgeText({ text: 'ERR' });
+    await chrome.action.setBadgeBackgroundColor({ color: '#dc2626' });
+    await chrome.action.setTitle({ title: 'Route failed to load' });
+  } catch {
+    /* ignore */
+  }
+};
+
 const handleTestMergedRoute = (url: string, sendResponse: (response: { status: RouteTestStatus }) => void) => {
   let testTabId: number | null = null;
   let responded = false;
@@ -94,13 +104,15 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         chrome.runtime.onMessage.removeListener(responseListener);
         console.warn('[merge-stops] testMergedRoute timeout');
         cleanup('timeout');
-      }, 15000);
+        setErrorBadge();
+      }, 20000);
     } catch (err) {
       console.error('[merge-stops] testMergedRoute failed to open tab', err);
       if (!responded) {
         responded = true;
         chrome.runtime.onMessage.removeListener(responseListener);
         cleanup('error');
+        setErrorBadge();
       }
     }
   })();

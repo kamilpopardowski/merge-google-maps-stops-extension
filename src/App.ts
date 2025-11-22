@@ -145,12 +145,11 @@ export default defineComponent({
         if (stability === 'ok') {
           status.value = 'Merged route opened in a new tab.';
           statusTone.value = 'info';
+          await chrome.tabs.create({ url: mergedUrl });
         } else {
-          status.value = 'Route test reported an issue; opening anyway. Some routes may still fail to load.';
+          status.value = 'Route failed to load in probe tab. Badge marked ERR.';
           statusTone.value = 'warn';
         }
-
-        await chrome.tabs.create({ url: mergedUrl });
       } catch (error) {
         console.error('Failed to merge tabs', error);
         status.value = 'Could not merge tabs. Please try again.';
