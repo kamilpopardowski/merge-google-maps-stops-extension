@@ -153,29 +153,37 @@ export default defineComponent({
         const mergedStops = selectedRoutes.map((route) => route.stopsPart).join('/');
         const mergedUrl = `${selectedRoutes[0].origin}/maps/dir/${mergedStops}`;
 
-        const stability = await testRouteStability(mergedUrl);
+        const totalStops = selectedRoutes.reduce((sum, route) => sum + route.stopsList.length, 0);
 
-        if (stability === 'ok') {
+        if (totalStops <= 10) {
           await chrome.tabs.create({ url: mergedUrl });
           status.value = 'Merged route opened in a new tab.';
           statusTone.value = 'info';
         } else {
-          const allStops = selectedRoutes.flatMap((r) => r.stopsList);
-          const segments = splitStopsIntoSegments(allStops, 10);
-          if (!segments.length) {
-            status.value = 'Could not split route.';
-            statusTone.value = 'warn';
-          } else {
-            status.value = 'Merged route unstable, opening fallback segments.';
-            statusTone.value = 'warn';
+          const stability = await testRouteStability(mergedUrl);
 
-            for (const seg of segments) {
-              const url = buildRouteUrl(selectedRoutes[0].origin, seg);
-              const segStatus = await testRouteStability(url);
-              await chrome.tabs.create({ url });
-              if (segStatus !== 'ok') {
-                status.value = 'Some segments may still be unstable.';
-                statusTone.value = 'warn';
+          if (stability === 'ok') {
+            await chrome.tabs.create({ url: mergedUrl });
+            status.value = 'Merged route opened in a new tab.';
+            statusTone.value = 'info';
+          } else {
+            const allStops = selectedRoutes.flatMap((r) => r.stopsList);
+            const segments = splitStopsIntoSegments(allStops, 10);
+            if (!segments.length) {
+              status.value = 'Could not split route.';
+              statusTone.value = 'warn';
+            } else {
+              status.value = 'Merged route unstable, opening fallback segments.';
+              statusTone.value = 'warn';
+
+              for (const seg of segments) {
+                const url = buildRouteUrl(selectedRoutes[0].origin, seg);
+                const segStatus = await testRouteStability(url);
+                await chrome.tabs.create({ url });
+                if (segStatus !== 'ok') {
+                  status.value = 'Some segments may still be unstable.';
+                  statusTone.value = 'warn';
+                }
               }
             }
           }
