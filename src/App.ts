@@ -59,12 +59,26 @@ const testRouteStability = async (url: string): Promise<'ok' | 'error' | 'timeou
   });
 };
 
+const splitStopsIntoSegments = (stops: string[], maxPerSegment: number): string[][] => {
+  const result: string[][] = [];
+  for (let i = 0; i < stops.length; i += maxPerSegment) {
+    result.push(stops.slice(i, i + maxPerSegment));
+  }
+  return result;
+};
+
+const buildRouteUrl = (origin: string, stops: string[]) => {
+  const encoded = stops.map((s) => encodeURIComponent(s || ''));
+  return `${origin}/maps/dir/${encoded.join('/')}`;
+};
+
 export default defineComponent({
   setup() {
     const status = ref('');
     const statusTone = ref<'idle' | 'info' | 'warn'>('idle');
     const isMerging = ref(false);
     const isLoading = ref(false);
+    const mergeSelectedLoading = ref(false);
     const showMapsHintToggle = ref(true);
     const routes = ref<
       Array<{
@@ -123,6 +137,7 @@ export default defineComponent({
       status.value = '';
       statusTone.value = 'info';
       isMerging.value = true;
+      mergeSelectedLoading.value = true;
 
       try {
         const selectedRoutes = routes.value
@@ -138,15 +153,40 @@ export default defineComponent({
         const mergedStops = selectedRoutes.map((route) => route.stopsPart).join('/');
         const mergedUrl = `${selectedRoutes[0].origin}/maps/dir/${mergedStops}`;
 
-        await chrome.tabs.create({ url: mergedUrl });
-        status.value = 'Merged route opened in a new tab.';
-        statusTone.value = 'info';
+        const stability = await testRouteStability(mergedUrl);
+
+        if (stability === 'ok') {
+          await chrome.tabs.create({ url: mergedUrl });
+          status.value = 'Merged route opened in a new tab.';
+          statusTone.value = 'info';
+        } else {
+          const allStops = selectedRoutes.flatMap((r) => r.stopsList);
+          const segments = splitStopsIntoSegments(allStops, 10);
+          if (!segments.length) {
+            status.value = 'Could not split route.';
+            statusTone.value = 'warn';
+          } else {
+            status.value = 'Merged route unstable, opening fallback segments.';
+            statusTone.value = 'warn';
+
+            for (const seg of segments) {
+              const url = buildRouteUrl(selectedRoutes[0].origin, seg);
+              const segStatus = await testRouteStability(url);
+              await chrome.tabs.create({ url });
+              if (segStatus !== 'ok') {
+                status.value = 'Some segments may still be unstable.';
+                statusTone.value = 'warn';
+              }
+            }
+          }
+        }
       } catch (error) {
         console.error('Failed to merge tabs', error);
         status.value = 'Could not merge tabs. Please try again.';
         statusTone.value = 'warn';
       } finally {
         isMerging.value = false;
+        mergeSelectedLoading.value = false;
       }
     };
 
@@ -203,6 +243,7 @@ export default defineComponent({
       toggleAll,
       showMapsHintToggle,
       toggleMapsHint,
+      mergeSelectedLoading,
     };
   },
 });
