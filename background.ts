@@ -1,32 +1,8 @@
 type RouteTestStatus = 'ok' | 'error' | 'timeout';
 
 const mapsRegex = /^https?:\/\/(www\.)?google\.[^/]+\/maps/i;
-let probeError = false;
-
-const showErrorBadge = async (tabId?: number) => {
-  try {
-    await chrome.action.setBadgeText({ tabId, text: 'ERR' });
-    await chrome.action.setBadgeBackgroundColor({ tabId, color: '#dc2626' });
-    await chrome.action.setTitle({ tabId, title: 'Route failed to load' });
-  } catch {
-    /* ignore */
-  }
-};
-
-const clearBadge = async (tabId?: number) => {
-  try {
-    await chrome.action.setBadgeText({ tabId, text: '' });
-    await chrome.action.setTitle({ tabId, title: '' });
-  } catch {
-    /* ignore */
-  }
-};
 
 const updateBadge = async (tabId: number, url?: string) => {
-  if (probeError) {
-    await showErrorBadge(tabId);
-    return;
-  }
   if (!url) return;
   const isMaps = mapsRegex.test(url);
 
@@ -78,6 +54,19 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
   let responded = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
+  const notifyProbeFailure = async () => {
+    try {
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      for (const tab of tabs) {
+        if (tab.id !== undefined) {
+          chrome.tabs.sendMessage(tab.id, { type: 'probeFailureNotice' }).catch(() => {});
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   const cleanup = async (status: RouteTestStatus) => {
     if (status !== 'ok' && testTabId !== null) {
       try {
@@ -85,8 +74,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
       } catch {
         /* ignore */
       }
-      probeError = true;
-      await showErrorBadge();
+      await notifyProbeFailure();
     }
     console.log('[merge-stops] testMergedRoute cleanup', { status, testTabId });
     sendResponse({ status });
@@ -104,11 +92,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
     const status: RouteTestStatus =
       msg.status === 'ok' ? 'ok' : msg.status === 'timeout' ? 'timeout' : 'error';
     if (status !== 'ok') {
-      probeError = true;
-      showErrorBadge();
-    } else {
-      probeError = false;
-      clearBadge();
+      notifyProbeFailure();
     }
     cleanup(status);
   };
@@ -127,7 +111,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         chrome.runtime.onMessage.removeListener(responseListener);
         console.warn('[merge-stops] testMergedRoute timeout');
         cleanup('timeout');
-        showErrorBadge();
+        notifyProbeFailure();
       }, 30000);
     } catch (err) {
       console.error('[merge-stops] testMergedRoute failed to open tab', err);
@@ -135,7 +119,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         responded = true;
         chrome.runtime.onMessage.removeListener(responseListener);
         cleanup('error');
-        showErrorBadge();
+        notifyProbeFailure();
       }
     }
   })();
