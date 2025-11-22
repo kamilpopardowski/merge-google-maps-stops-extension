@@ -65,7 +65,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   const cleanup = async (status: RouteTestStatus) => {
-    if (testTabId !== null) {
+    if (status !== 'ok' && testTabId !== null) {
       try {
         await chrome.tabs.remove(testTabId);
       } catch {
@@ -87,6 +87,9 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
     chrome.runtime.onMessage.removeListener(responseListener);
     const status: RouteTestStatus =
       msg.status === 'ok' ? 'ok' : msg.status === 'timeout' ? 'timeout' : 'error';
+    if (status !== 'ok') {
+      setErrorBadge();
+    }
     cleanup(status);
   };
 
