@@ -18,13 +18,16 @@
   const hasSuccessSignals = () => {
     try {
       const selectors = [
-        '[aria-label*="Directions"]',
         '[aria-label*="Route options"]',
-        '[data-tooltip*="Directions"]',
-        '[role="article"]',
+        '[data-tooltip*="Route options"]',
         '.section-directions-trip',
-        'canvas', // route rendering layer often uses canvas
-        'path' // svg path for routes
+        '.section-directions-trip-description',
+        '.section-directions-trip-details',
+        '[aria-label*="Route overview"]',
+        '[role="article"] .section-directions-trip-title',
+        '[role="article"] .section-directions-trip-details',
+        '[data-tooltip*="Steps"]',
+        '[aria-label*="Route summary"]',
       ];
       for (const sel of selectors) {
         if (document.querySelector(sel)) return true;
