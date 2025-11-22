@@ -52,7 +52,7 @@ chrome.tabs.query({}).then((tabs) => {
 const handleTestMergedRoute = (url: string, sendResponse: (response: { status: RouteTestStatus }) => void) => {
   let testTabId: number | null = null;
   let responded = false;
-  let timer: number | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
 
   const cleanup = async (status: RouteTestStatus) => {
     if (testTabId !== null) {
@@ -88,7 +88,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
 
       chrome.runtime.onMessage.addListener(responseListener);
 
-      timer = window.setTimeout(() => {
+      timer = setTimeout(() => {
         if (responded) return;
         responded = true;
         chrome.runtime.onMessage.removeListener(responseListener);
