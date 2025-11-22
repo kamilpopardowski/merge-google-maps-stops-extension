@@ -42,12 +42,30 @@ const decodeStops = (stopsPart: string) =>
     .map((part) => decodeURIComponent(part || ''))
     .filter(Boolean);
 
+const testRouteStability = async (url: string): Promise<'ok' | 'error' | 'timeout'> => {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage({ type: 'testMergedRoute', url }, (response) => {
+        const status = response?.status;
+        if (status === 'ok' || status === 'error' || status === 'timeout') {
+          resolve(status);
+        } else {
+          resolve('error');
+        }
+      });
+    } catch (err) {
+      resolve('error');
+    }
+  });
+};
+
 export default defineComponent({
   setup() {
     const status = ref('');
     const statusTone = ref<'idle' | 'info' | 'warn'>('idle');
     const isMerging = ref(false);
     const isLoading = ref(false);
+    const mergeSelectedLoading = ref(false);
     const showMapsHintToggle = ref(true);
     const routes = ref<
       Array<{
@@ -106,6 +124,7 @@ export default defineComponent({
       status.value = '';
       statusTone.value = 'info';
       isMerging.value = true;
+      mergeSelectedLoading.value = true;
 
       try {
         const selectedRoutes = routes.value
@@ -121,15 +140,23 @@ export default defineComponent({
         const mergedStops = selectedRoutes.map((route) => route.stopsPart).join('/');
         const mergedUrl = `${selectedRoutes[0].origin}/maps/dir/${mergedStops}`;
 
-        await chrome.tabs.create({ url: mergedUrl });
-        status.value = 'Merged route opened in a new tab.';
-        statusTone.value = 'info';
+        const stability = await testRouteStability(mergedUrl);
+
+        if (stability === 'ok') {
+          status.value = 'Merged route opened in a new tab.';
+          statusTone.value = 'info';
+          await chrome.tabs.create({ url: mergedUrl });
+        } else {
+          status.value = 'Route failed to load in probe tab. Badge marked ERR.';
+          statusTone.value = 'warn';
+        }
       } catch (error) {
         console.error('Failed to merge tabs', error);
         status.value = 'Could not merge tabs. Please try again.';
         statusTone.value = 'warn';
       } finally {
         isMerging.value = false;
+        mergeSelectedLoading.value = false;
       }
     };
 
@@ -186,6 +213,7 @@ export default defineComponent({
       toggleAll,
       showMapsHintToggle,
       toggleMapsHint,
+      mergeSelectedLoading,
     };
   },
 });
