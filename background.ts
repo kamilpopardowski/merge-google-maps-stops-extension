@@ -71,6 +71,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
       } catch {
         /* ignore */
       }
+      await setErrorBadge();
     }
     console.log('[merge-stops] testMergedRoute cleanup', { status, testTabId });
     sendResponse({ status });
