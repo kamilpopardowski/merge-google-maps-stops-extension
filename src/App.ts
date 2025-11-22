@@ -42,6 +42,23 @@ const decodeStops = (stopsPart: string) =>
     .map((part) => decodeURIComponent(part || ''))
     .filter(Boolean);
 
+const testRouteStability = async (url: string): Promise<'ok' | 'error' | 'timeout'> => {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime.sendMessage({ type: 'testMergedRoute', url }, (response) => {
+        const status = response?.status;
+        if (status === 'ok' || status === 'error' || status === 'timeout') {
+          resolve(status);
+        } else {
+          resolve('error');
+        }
+      });
+    } catch (err) {
+      resolve('error');
+    }
+  });
+};
+
 export default defineComponent({
   setup() {
     const status = ref('');
