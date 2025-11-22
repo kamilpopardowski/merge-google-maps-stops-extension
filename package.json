@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build && cp background.js dist/background.js && cp mapsHintContent.js dist/mapsHintContent.js && node scripts/prepare-dist-manifest.js",
+    "build": "vue-tsc && vite build && tsc -p tsconfig.background.json && cp mapsHintContent.js dist/mapsHintContent.js && node scripts/prepare-dist-manifest.js",
     "preview": "vite preview"
   },
   "dependencies": {
