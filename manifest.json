@@ -17,6 +17,16 @@
                 "mapsHintContent.js"
             ],
             "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://www.google.com/maps/*",
+                "https://maps.google.com/*"
+            ],
+            "js": [
+                "mapsRouteProbe.js"
+            ],
+            "run_at": "document_end"
         }
     ],
     "background": {
