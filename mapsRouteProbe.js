@@ -59,20 +59,24 @@
         return;
       }
       if (hasErrorSignals()) {
+        console.log('[merge-stops][probe] error detected');
         clearInterval(interval);
         sendStatus('error');
         return;
       }
       if (hasSuccessSignals()) {
+        console.log('[merge-stops][probe] success detected');
         clearInterval(interval);
         sendStatus('ok');
         return;
       }
+      console.log('[merge-stops][probe] polling...');
     }, INTERVAL_MS);
 
     setTimeout(() => {
       if (done) return;
       clearInterval(interval);
+      console.warn('[merge-stops][probe] timeout');
       sendStatus('timeout');
     }, MAX_MS);
   };

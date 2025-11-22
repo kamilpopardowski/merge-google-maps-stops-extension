@@ -62,6 +62,7 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         /* ignore */
       }
     }
+    console.log('[merge-stops] testMergedRoute cleanup', { status, testTabId });
     sendResponse({ status });
   };
 
@@ -81,7 +82,8 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
 
   (async () => {
     try {
-      const tab = await chrome.tabs.create({ url, active: false });
+      console.log('[merge-stops] testMergedRoute open tab', url);
+      const tab = await chrome.tabs.create({ url, active: true });
       testTabId = tab.id ?? null;
 
       chrome.runtime.onMessage.addListener(responseListener);
@@ -90,9 +92,11 @@ const handleTestMergedRoute = (url: string, sendResponse: (response: { status: R
         if (responded) return;
         responded = true;
         chrome.runtime.onMessage.removeListener(responseListener);
+        console.warn('[merge-stops] testMergedRoute timeout');
         cleanup('timeout');
       }, 15000);
     } catch (err) {
+      console.error('[merge-stops] testMergedRoute failed to open tab', err);
       if (!responded) {
         responded = true;
         chrome.runtime.onMessage.removeListener(responseListener);
