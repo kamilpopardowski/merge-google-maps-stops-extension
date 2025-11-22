@@ -119,15 +119,23 @@ export default defineComponent({
         const mergedStops = selectedRoutes.map((route) => route.stopsPart).join('/');
         const mergedUrl = `${selectedRoutes[0].origin}/maps/dir/${mergedStops}`;
 
-        const stability = await testRouteStability(mergedUrl);
+        const totalStops = selectedRoutes.reduce((sum, route) => sum + route.stopsList.length, 0);
 
-        if (stability === 'ok') {
+        if (totalStops <= 10) {
           status.value = 'Merged route opened in a new tab.';
           statusTone.value = 'info';
           await chrome.tabs.create({ url: mergedUrl });
         } else {
-          status.value = 'Route failed to load in probe tab. Check the red banner for details.';
-          statusTone.value = 'warn';
+          const stability = await testRouteStability(mergedUrl);
+
+          if (stability === 'ok') {
+            status.value = 'Merged route opened in a new tab.';
+            statusTone.value = 'info';
+            await chrome.tabs.create({ url: mergedUrl });
+          } else {
+            status.value = 'Route failed to load in probe tab. Check the red banner for details.';
+            statusTone.value = 'warn';
+          }
         }
       } catch (error) {
         console.error('Failed to merge tabs', error);
