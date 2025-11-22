@@ -43,6 +43,13 @@
 
       <div v-else class="empty">No Google Maps directions tabs detected.</div>
 
+      <div class="toggle">
+        <label>
+          <input v-model="showMapsHintToggle" type="checkbox" @change="toggleMapsHint" />
+          Show Maps hint banner on Google Maps
+        </label>
+      </div>
+
       <button class="primary" :disabled="isMerging" @click="mergeTabs">
         <span v-if="isMerging">Merging…</span>
         <span v-else>Merge selected tabs</span>
@@ -273,5 +280,18 @@
   color: #9a3412;
   border-radius: 10px;
   font-size: 13px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.toggle input {
+  width: 16px;
+  height: 16px;
 }
 </style>

@@ -48,6 +48,7 @@ export default defineComponent({
     const statusTone = ref<'idle' | 'info' | 'warn'>('idle');
     const isMerging = ref(false);
     const isLoading = ref(false);
+    const showMapsHintToggle = ref(true);
     const routes = ref<
       Array<{
         tabId: number;
@@ -60,12 +61,6 @@ export default defineComponent({
         order: number;
       }>
     >([]);
-
-    const decodeStops = (stopsPart: string) =>
-      stopsPart
-        .split('/')
-        .map((part) => decodeURIComponent(part || ''))
-        .filter(Boolean);
 
     const loadTabs = async () => {
       isLoading.value = true;
@@ -154,7 +149,30 @@ export default defineComponent({
       routes.value = routes.value.map((r) => ({ ...r, selected: checked }));
     };
 
+    const initHintToggle = () => {
+      if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+      try {
+        chrome.storage.local.get('mapsHintDismissed', (result) => {
+          const dismissed = !!result?.mapsHintDismissed;
+          showMapsHintToggle.value = !dismissed;
+        });
+      } catch (err) {
+        showMapsHintToggle.value = true;
+      }
+    };
+
+    const toggleMapsHint = () => {
+      if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+      const dismissed = !showMapsHintToggle.value;
+      try {
+        chrome.storage.local.set({ mapsHintDismissed: dismissed });
+      } catch (err) {
+        // ignore
+      }
+    };
+
     loadTabs();
+    initHintToggle();
 
     return {
       status,
@@ -166,6 +184,8 @@ export default defineComponent({
       mergeTabs,
       moveRoute,
       toggleAll,
+      showMapsHintToggle,
+      toggleMapsHint,
     };
   },
 });
