@@ -5,6 +5,17 @@ type DirSegment = {
   stops: string;
 };
 
+type RouteTab = {
+  tabId: number;
+  title: string;
+  url: string;
+  origin: string;
+  stopsPart: string;
+  stopsList: string[];
+  selected: boolean;
+  order: number;
+};
+
 const parseDirFromUrl = (url: string): DirSegment | null => {
   try {
     const parsed = new URL(url);
@@ -24,6 +35,12 @@ const parseDirFromUrl = (url: string): DirSegment | null => {
     return null;
   }
 };
+
+const decodeStops = (stopsPart: string) =>
+  stopsPart
+    .split('/')
+    .map((part) => decodeURIComponent(part || ''))
+    .filter(Boolean);
 
 export default defineComponent({
   setup() {
