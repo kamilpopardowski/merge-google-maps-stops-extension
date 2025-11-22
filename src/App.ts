@@ -1,19 +1,10 @@
 import { defineComponent, ref } from 'vue';
+import RouteList from './components/RouteList.vue';
+import type { RouteTab } from './types';
 
 type DirSegment = {
   origin: string;
   stops: string;
-};
-
-type RouteTab = {
-  tabId: number;
-  title: string;
-  url: string;
-  origin: string;
-  stopsPart: string;
-  stopsList: string[];
-  selected: boolean;
-  order: number;
 };
 
 const parseDirFromUrl = (url: string): DirSegment | null => {
@@ -60,25 +51,14 @@ const testRouteStability = async (url: string): Promise<'ok' | 'error' | 'timeou
 };
 
 export default defineComponent({
+  components: { RouteList },
   setup() {
     const status = ref('');
     const statusTone = ref<'idle' | 'info' | 'warn'>('idle');
     const isMerging = ref(false);
     const isLoading = ref(false);
-    const mergeSelectedLoading = ref(false);
     const showMapsHintToggle = ref(true);
-    const routes = ref<
-      Array<{
-        tabId: number;
-        title: string;
-        url: string;
-        origin: string;
-        stopsPart: string;
-        stopsList: string[];
-        selected: boolean;
-        order: number;
-      }>
-    >([]);
+    const routes = ref<RouteTab[]>([]);
 
     const loadTabs = async () => {
       isLoading.value = true;
@@ -104,9 +84,9 @@ export default defineComponent({
               order: idx,
             };
           })
-          .filter(Boolean);
+          .filter(Boolean) as RouteTab[];
 
-        routes.value = parsed as typeof routes.value;
+        routes.value = parsed;
         if (!routes.value.length) {
           status.value = 'No Google Maps directions tabs found in this window.';
           statusTone.value = 'warn';
@@ -124,7 +104,6 @@ export default defineComponent({
       status.value = '';
       statusTone.value = 'info';
       isMerging.value = true;
-      mergeSelectedLoading.value = true;
 
       try {
         const selectedRoutes = routes.value
@@ -147,7 +126,7 @@ export default defineComponent({
           statusTone.value = 'info';
           await chrome.tabs.create({ url: mergedUrl });
         } else {
-          status.value = 'Route failed to load in probe tab. Badge marked ERR.';
+          status.value = 'Route failed to load in probe tab. Check the red banner for details.';
           statusTone.value = 'warn';
         }
       } catch (error) {
@@ -156,7 +135,6 @@ export default defineComponent({
         statusTone.value = 'warn';
       } finally {
         isMerging.value = false;
-        mergeSelectedLoading.value = false;
       }
     };
 
@@ -174,6 +152,12 @@ export default defineComponent({
 
     const toggleAll = (checked: boolean) => {
       routes.value = routes.value.map((r) => ({ ...r, selected: checked }));
+    };
+
+    const toggleRouteSelection = (tabId: number, selected: boolean) => {
+      routes.value = routes.value.map((route) =>
+        route.tabId === tabId ? { ...route, selected } : route,
+      );
     };
 
     const initHintToggle = () => {
@@ -213,7 +197,7 @@ export default defineComponent({
       toggleAll,
       showMapsHintToggle,
       toggleMapsHint,
-      mergeSelectedLoading,
+      toggleRouteSelection,
     };
   },
 });
