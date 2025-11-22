@@ -9,7 +9,7 @@ const updateBadge = async (tabId: number, url?: string) => {
   try {
     if (isMaps) {
       await chrome.action.setBadgeText({ tabId, text: 'GO!' });
-      await chrome.action.setBadgeBackgroundColor({ tabId, color: '#ec4899' });
+      await chrome.action.setBadgeBackgroundColor({ tabId, color: '#ef4444' });
       await chrome.action.setTitle({
         tabId,
         title: 'Maps detected. Click to merge all stops.',
