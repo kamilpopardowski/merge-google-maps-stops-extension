@@ -1,16 +1,4 @@
-<script setup lang="ts">
-import RouteCard from './RouteCard.vue';
-import type { RouteTab } from '../types';
-
-defineProps<{
-  routes: RouteTab[];
-}>();
-
-const emit = defineEmits<{
-  (e: 'move', tabId: number, direction: 'up' | 'down'): void;
-  (e: 'toggle', tabId: number, selected: boolean): void;
-}>();
-</script>
+<script lang="ts" src="./RouteList.ts"></script>
 
 <template>
   <div class="routes" v-if="routes.length">
@@ -20,8 +8,8 @@ const emit = defineEmits<{
       :route="route"
       :index="idx"
       :total="routes.length"
-      @move="(id, dir) => emit('move', id, dir)"
-      @toggle="(id, selected) => emit('toggle', id, selected)"
+      @move="onMove"
+      @toggle="onToggle"
     />
   </div>
   <div v-else class="empty">No Google Maps directions tabs detected.</div>

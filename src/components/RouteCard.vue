@@ -1,22 +1,4 @@
-<script setup lang="ts">
-import type { RouteTab } from '../types';
-
-const props = defineProps<{
-  route: RouteTab;
-  index: number;
-  total: number;
-}>();
-
-const emit = defineEmits<{
-  (e: 'move', tabId: number, direction: 'up' | 'down'): void;
-  (e: 'toggle', tabId: number, selected: boolean): void;
-}>();
-
-const onToggle = (event: Event) => {
-  const checked = (event.target as HTMLInputElement).checked;
-  emit('toggle', props.route.tabId, checked);
-};
-</script>
+<script lang="ts" src="./RouteCard.ts"></script>
 
 <template>
   <div class="route">
@@ -29,8 +11,8 @@ const onToggle = (event: Event) => {
         </div>
       </div>
       <div class="route-controls">
-        <button class="icon-btn" :disabled="index === 0" @click="emit('move', route.tabId, 'up')">↑</button>
-        <button class="icon-btn" :disabled="index === total - 1" @click="emit('move', route.tabId, 'down')">↓</button>
+        <button class="icon-btn" :disabled="index === 0" @click="emitMove('up')">↑</button>
+        <button class="icon-btn" :disabled="index === total - 1" @click="emitMove('down')">↓</button>
       </div>
     </div>
     <ul class="stops">
